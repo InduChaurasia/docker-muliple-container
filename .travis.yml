@@ -1,0 +1,20 @@
+sudo: required
+services:
+ - docker
+
+before_install:
+ - docker build -t indu17/react-test -f ./client/Dockerfile.dev ./client
+ 
+script:
+ - docker run -e CI=true indu17/react-test npm run test -- --coverage
+
+after_success:
+ - docker build -t indu17/multi-client ./client
+ - docker build -t indu17/multi-server ./server
+ - docker build -t indu17/multi-worker ./worker
+ - docker build -t indu17/multi-nginx ./nginx
+ - echo "$DOCKER_PWD" | docker login -u "$DOCKER_ID" --password-stdin
+ - docker push indu17/multi-client
+ - docker push indu17/multi-server
+ - docker push indu17/multi-worker
+ - docker push indu17/multi-nginx
